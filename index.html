@@ -1,0 +1,1146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Traces of Life</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #ffffff;
+  --ink: #1f1d1b;
+  --grey: #777068;
+  --faint: #b2aaa2;
+  --line: #ececea;
+  --wash: #f7f6f3;
+  --accent: #c97b5e;
+  --accent-soft: #f7ede8;
+  --ok: oklch(0.58 0.09 155);
+  --ok-soft: oklch(0.95 0.03 155);
+  --no: oklch(0.58 0.12 28);
+  --no-soft: oklch(0.95 0.035 28);
+}
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: 'Helvetica Neue', Helvetica, 'Inter', Arial, sans-serif;
+  font-size: 16px; line-height: 1.55; -webkit-font-smoothing: antialiased; letter-spacing: -0.01em;
+}
+
+.progress { position: fixed; top: 0; left: 0; height: 2px; background: var(--accent); z-index: 1000; width: 0%; transition: width 0.1s linear; }
+.nav-dots { position: fixed; right: 26px; top: 50%; transform: translateY(-50%); z-index: 900; display: flex; flex-direction: column; gap: 12px; }
+.nav-dots a { width: 6px; height: 6px; border-radius: 50%; background: var(--line); transition: all 0.25s; }
+.nav-dots a:hover, .nav-dots a.active { background: var(--accent); transform: scale(1.4); }
+
+.slide { min-height: 100vh; width: 100%; padding: 9vh 9vw; display: flex; flex-direction: column; justify-content: center; position: relative; }
+.slide + .slide { border-top: 1px solid var(--line); }
+
+h1 { font-weight: 700; font-size: clamp(2.8rem,7vw,5.5rem); line-height: 0.98; letter-spacing: -0.04em; }
+h1 em { font-style: normal; color: var(--accent); }
+h2 { font-weight: 600; font-size: clamp(2rem,4.4vw,3.3rem); line-height: 1.05; letter-spacing: -0.035em; margin-bottom: 30px; }
+h2 em { font-style: normal; color: var(--accent); }
+h3 { font-weight: 600; font-size: 1.1rem; margin-bottom: 9px; letter-spacing: -0.015em; }
+p { margin-bottom: 14px; max-width: 60ch; color: var(--grey); }
+.lead { font-size: 1.4rem; color: var(--ink); line-height: 1.4; font-weight: 400; letter-spacing: -0.02em; }
+.big-lead { font-size: clamp(1.6rem,3vw,2.3rem); color: var(--ink); line-height: 1.3; font-weight: 400; letter-spacing: -0.025em; max-width: 24ch; }
+.big-lead em { font-style: normal; color: var(--accent); }
+strong { font-weight: 600; color: var(--ink); }
+em.it { font-style: italic; color: var(--ink); }
+.eyebrow { font-size: 13px; letter-spacing: 0.06em; color: var(--accent); margin-bottom: 24px; font-weight: 600; text-transform: uppercase; }
+.mono { font-variant-numeric: tabular-nums; }
+
+/* ICONS */
+.ico line,.ico circle,.ico rect,.ico path,.ico polyline,.ico polygon { fill:none; stroke:var(--ink); stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round; }
+.ico .ac { stroke: var(--accent); }
+
+/* ===== FULL-BLEED PHOTO SLIDE ===== */
+.photo-slide { padding: 0; }
+.photo-slide img { width: 100%; height: 100vh; object-fit: cover; display: block; }
+.photo-cap { position: absolute; left: 9vw; bottom: 8vh; color: #fff; max-width: 30ch; text-shadow: 0 1px 20px rgba(0,0,0,0.5); }
+.photo-cap .t { font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase; opacity: 0.9; margin-bottom: 8px; font-weight: 600; }
+.photo-cap h2 { color: #fff; margin-bottom: 0; }
+.photo-tint { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(0,0,0,0.05), rgba(0,0,0,0.35)); }
+
+/* ===== COVER ===== */
+.cover { padding: 0; position: relative; }
+.cover img { width: 100%; height: 100vh; object-fit: cover; }
+.cover-overlay { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(255,255,255,0.92) 0%, rgba(255,255,255,0.7) 45%, rgba(255,255,255,0.4) 100%); display: flex; flex-direction: column; justify-content: space-between; padding: 9vh 9vw; }
+.cover h1 { font-size: clamp(3.2rem,11vw,9rem); }
+.cover h1 em { color: var(--accent); }
+.cover .sub { font-size: clamp(1.15rem,2.3vw,1.6rem); font-weight: 300; max-width: 42ch; margin-top: 24px; line-height: 1.32; color: var(--ink); }
+.cover-foot { display: flex; justify-content: space-between; align-items: flex-end; font-size: 13px; color: var(--grey); font-weight: 400; flex-wrap: wrap; gap: 16px; }
+.cover-foot b { color: var(--ink); font-weight: 600; }
+.cover-foot .ac { color: var(--accent); }
+
+/* ===== GRID ===== */
+.two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 64px; align-items: center; }
+.three-col { display: grid; grid-template-columns: repeat(3,1fr); gap: 40px; }
+@media (max-width:880px){ .two-col,.three-col{grid-template-columns:1fr; gap:32px;} .nav-dots{display:none;} .slide{padding:7vh 7vw;} .photo-cap{left:7vw;} .cover-overlay{padding:7vh 7vw;} }
+
+/* ===== INVERTED-U INFOGRAPHIC ===== */
+.uchart { width: 100%; max-width: 760px; margin: 0 auto; }
+
+/* ===== 2x2 MATRIX ===== */
+.matrix { display: grid; grid-template-columns: 90px 1fr 1fr 1fr; gap: 10px; margin-top: 10px; }
+.matrix .corner {}
+.matrix .ch { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--grey); font-weight: 600; text-align: center; padding: 8px 0; display: flex; align-items: center; justify-content: center; gap: 7px; }
+.matrix .rh { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; display: flex; align-items: center; }
+.matrix .rh.v { color: var(--ink); } .matrix .rh.m { color: var(--accent); }
+.matrix .cell { aspect-ratio: 16/10; background: var(--wash); border-radius: 4px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+.matrix .cell img { width: 100%; height: 100%; object-fit: cover; }
+.matrix .cell.empty { border: 1px dashed var(--line); background: transparent; }
+.matrix .cell .ico { opacity: 0.4; }
+
+/* ===== IVC GRADIENT ===== */
+.ivc-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 8px; }
+.ivc-cell { text-align: center; }
+.ivc-vis { aspect-ratio: 1; border: 1px solid var(--line); border-radius: 4px; position: relative; overflow: hidden; background: var(--wash); margin-bottom: 14px; }
+.ivc-dots { position: absolute; inset: 0; }
+.ivc-pct { font-size: 2rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.ivc-cell.hi .ivc-pct { color: var(--accent); }
+.ivc-name { font-size: 12px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--grey); margin-top: 6px; font-weight: 600; }
+
+/* ===== IVC PHOTO GRID ===== */
+.ivc-photo-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 8px; }
+.ivc-photo-grid figure { margin: 0; }
+.ivc-photo-grid img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 4px; display: block; }
+.ivc-photo-grid figcaption { font-size: 12px; color: var(--grey); margin-top: 10px; letter-spacing: -0.005em; }
+@media (max-width:880px){ .ivc-photo-grid{grid-template-columns:repeat(2,1fr);} }
+
+/* ===== NORMALISATION ===== */
+.norm-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.norm-pair figure { margin: 0; }
+.norm-pair img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 4px; display: block; border: 1px solid var(--line); }
+.norm-pair figcaption { font-size: 12px; color: var(--grey); margin-top: 8px; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+.norm-pair figcaption .ac { color: var(--accent); }
+.val-img { width: 100%; border-radius: 4px; display: block; border: 1px solid var(--line); }
+
+/* ===== TYPOLOGY GRID (6 typologies, old|new pairs) ===== */
+.typ-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 24px 28px; margin-top: 18px; }
+.typ .pair { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; }
+.typ .pair figure { margin: 0; position: relative; }
+.typ .pair img { width: 100%; aspect-ratio: 4/3; object-fit: cover; display: block; border-radius: 3px; }
+.typ .pair span { position: absolute; left: 6px; top: 6px; font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; background: rgba(31,29,27,0.62); padding: 2px 6px; border-radius: 2px; }
+.typ .pair figure:last-child span { background: var(--accent); }
+.typ .tname { font-size: 13px; font-weight: 600; margin-top: 9px; letter-spacing: -0.01em; }
+@media (max-width:880px){ .typ-grid{grid-template-columns:repeat(2,1fr);} }
+
+/* ===== GRADIENT PHOTOS ===== */
+.grad-row { display: grid; grid-template-columns: repeat(4,1fr); gap: 16px; margin-top: 10px; }
+.grad-cell figure { margin: 0; }
+.grad-cell img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; display: block; }
+.grad-cell .pct { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; margin-top: 10px; line-height: 1; }
+.grad-cell.hi .pct { color: var(--accent); }
+.grad-cell .lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 600; margin-top: 4px; }
+
+/* ===== SEMANTIZATION ===== */
+.sem-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; margin-top: 10px; }
+.sem-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; align-items: start; }
+.sem-pair img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 4px; display: block; border: 1px solid var(--line); }
+.sem-cap { font-size: 12px; color: var(--grey); margin-top: 12px; }
+.sem-cap b { color: var(--ink); }
+
+/* ===== TYPOLOGY SHEETS ===== */
+.sheet-row { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; margin-top: 14px; align-items: start; }
+.sheet-row img { width: 100%; border-radius: 4px; display: block; border: 1px solid var(--line); }
+
+/* ===== NORM LAYOUT (charts left, process right) ===== */
+.norm-layout { display: grid; grid-template-columns: 0.85fr 1.15fr; gap: 44px; margin-top: 14px; align-items: start; }
+.norm-charts { display: flex; flex-direction: column; gap: 12px; }
+.norm-charts img { width: 100%; border-radius: 4px; border: 1px solid var(--line); display: block; }
+.norm-step .step-label { font-size: 0.92rem; font-weight: 600; margin-bottom: 12px; display: flex; align-items: center; gap: 10px; letter-spacing: -0.01em; }
+.norm-step .step-label .num { width: 22px; height: 22px; border-radius: 50%; background: var(--accent); color: #fff; font-size: 12px; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+@media (max-width:880px){ .norm-layout{grid-template-columns:1fr;} }
+.flow-step { position: relative; }
+.flow-step .ico { margin-bottom: 16px; }
+.flow-step .n { font-size: 13px; color: var(--accent); font-weight: 600; margin-bottom: 8px; }
+.flow-step h3 { font-size: 1.05rem; }
+.flow-step p { font-size: 0.88rem; margin-bottom: 0; }
+.flow-step:not(:last-child)::after { content:"→"; position: absolute; right:-20px; top: 8px; color: var(--faint); font-size: 1.2rem; }
+
+/* ===== CONCEPT BLOCKS ===== */
+.concept { }
+.concept .ico { margin-bottom: 18px; }
+.concept h3 { margin-bottom: 8px; }
+.concept p { font-size: 0.95rem; margin-bottom: 0; }
+
+/* ===== STAT ===== */
+.stat-row { display: flex; gap: 56px; flex-wrap: wrap; margin-top: 30px; }
+.stat .n { font-size: 3.6rem; font-weight: 700; line-height: 1; letter-spacing: -0.04em; }
+.stat .l { font-size: 12px; letter-spacing: 0.03em; text-transform: uppercase; color: var(--faint); margin-top: 8px; font-weight: 500; }
+
+/* ===== CHART ===== */
+.bar-chart { display: flex; flex-direction: column; gap: 26px; margin-top: 10px; max-width: 720px; }
+.bar-label { display: flex; justify-content: space-between; font-size: 1rem; margin-bottom: 9px; color: var(--ink); }
+.bar-label .val { font-variant-numeric: tabular-nums; font-weight: 600; }
+.bar-track { height: 10px; background: var(--wash); border-radius: 100px; overflow: hidden; }
+.bar-fill { height: 100%; background: var(--accent); width: 0; transition: width 1.3s cubic-bezier(0.2,0.8,0.2,1); border-radius: 100px; }
+.bar-fill.s2 { background: var(--ink); }
+
+/* ===== HYP VISUAL ===== */
+.hyp-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 10px; }
+.hyp-card { border: 1px solid var(--line); border-radius: 6px; padding: 24px; display: flex; gap: 20px; align-items: center; }
+.hyp-card .ico { flex-shrink: 0; }
+.hyp-card .code { font-weight: 700; font-size: 1.05rem; margin-bottom: 4px; }
+.hyp-card .d { font-size: 0.9rem; color: var(--grey); line-height: 1.4; }
+.hyp-card .d b { color: var(--ink); }
+
+/* ===== EEG ===== */
+.eeg-fig { margin: 0; max-width: 360px; }
+.eeg-fig svg { width: 100%; display: block; background: transparent; padding: 0; }
+.eeg-fig figcaption { font-size: 12px; color: var(--grey); margin-top: 14px; line-height: 1.5; }
+.eeg-fig figcaption strong { color: var(--ink); }
+.eeg-sig { display: grid; grid-template-columns: 1fr 1fr; gap: 18px 16px; }
+.eeg-sig > div { display: flex; flex-direction: column; gap: 3px; padding-left: 12px; border-left: 2px solid var(--accent-soft); }
+.eeg-sig .loc { font-size: 11px; font-variant-numeric: tabular-nums; letter-spacing: 0.02em; color: var(--ink); font-weight: 600; }
+.eeg-sig .d { font-size: 0.82rem; color: var(--grey); }
+
+/* ===== VARIABLES FRAMEWORK ===== */
+#s_variables { padding-top: 6vh; padding-bottom: 6vh; justify-content: flex-start; }
+.vf { display: flex; flex-direction: column; gap: 13px; margin-top: 20px; }
+.vf-band { display: grid; grid-template-columns: 142px 1fr; gap: 22px; align-items: stretch; }
+.vf-lbl { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; color: var(--ink); padding-top: 4px; line-height: 1.35; }
+.vf-lbl span { display: block; color: var(--faint); font-weight: 600; margin-top: 2px; }
+.vf-iv { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; }
+.vf-card { border: 1px solid var(--line); border-radius: 8px; padding: 13px 15px; background: #fff; }
+.vf-card.core { border-color: var(--accent); background: var(--accent-soft); }
+.vf-role { font-size: 9.5px; text-transform: uppercase; letter-spacing: 0.07em; font-weight: 700; color: var(--accent); margin-bottom: 6px; }
+.vf-card.muted .vf-role { color: var(--grey); }
+.vf-card h4 { font-size: 0.92rem; margin-bottom: 7px; letter-spacing: -0.015em; }
+.vf-card p { font-size: 0.76rem; color: var(--grey); margin: 0 0 8px; line-height: 1.42; }
+.vf-card .hyp { font-size: 0.76rem; color: var(--ink); line-height: 1.4; }
+.vf-card .hyp b { color: var(--accent); font-weight: 600; }
+.vf-chips { display: grid; grid-template-columns: repeat(6,1fr); gap: 9px; }
+.vf-chip { border: 1px solid var(--line); border-radius: 6px; padding: 9px 8px; text-align: center; background: var(--wash); }
+.vf-chip .k { font-size: 0.82rem; font-weight: 700; letter-spacing: -0.01em; }
+.vf-chip .d { font-size: 0.64rem; color: var(--grey); margin-top: 3px; line-height: 1.3; }
+.vf-chip .m { font-size: 0.58rem; color: var(--faint); font-style: italic; margin-top: 4px; line-height: 1.25; }
+.vf-dv { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.vf-dv .vf-card h4 { margin-bottom: 8px; }
+.vf-dv .cols { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.vf-dv .sub { font-size: 0.7rem; font-weight: 700; color: var(--accent); margin-bottom: 3px; text-transform: uppercase; letter-spacing: 0.04em; }
+.vf-dv ul { list-style: none; font-size: 0.74rem; color: var(--grey); line-height: 1.45; }
+.vf-dv li { padding: 1px 0; }
+.vf-dv .ch { font-size: 0.66rem; color: var(--faint); font-style: italic; margin-top: 6px; }
+.vf-mod { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; border: 1px dashed var(--line); border-radius: 8px; padding: 11px 16px; background: var(--wash); }
+.vf-mod .h { font-size: 0.74rem; font-weight: 700; margin-bottom: 3px; }
+.vf-mod ul { list-style: none; font-size: 0.72rem; color: var(--grey); }
+.vf-mod li { padding: 1px 0; }
+.vf-foot { font-size: 11px; color: var(--faint); margin-top: 14px; max-width: none; }
+@media (max-width:880px){ .vf-band{grid-template-columns:1fr;} .vf-iv,.vf-chips,.vf-dv,.vf-mod{grid-template-columns:1fr;} }
+
+/* ===== PILOT RESULTS ===== */
+.res-stats { display: grid; grid-template-columns: repeat(5,1fr); gap: 14px; margin-top: 22px; }
+.res-stats > div { border: 1px solid var(--line); border-radius: 8px; padding: 15px 14px; }
+.res-stats .n { font-size: 2.1rem; font-weight: 700; letter-spacing: -0.04em; line-height: 1; }
+.res-stats .n span { font-size: 0.95rem; font-weight: 600; color: var(--grey); margin-left: 2px; }
+.res-stats .l { font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--faint); font-weight: 600; margin-top: 8px; line-height: 1.3; }
+.matrix2 { display: grid; grid-template-columns: 88px repeat(5,1fr); gap: 8px; margin-top: 14px; }
+.matrix2 .mh { font-size: 11px; text-transform: uppercase; letter-spacing: 0.03em; color: var(--grey); font-weight: 600; text-align: center; align-self: end; padding-bottom: 4px; line-height: 1.3; }
+.matrix2 .mh span { display: block; color: var(--faint); font-size: 10px; }
+.matrix2 .rl { font-size: 0.95rem; font-weight: 600; display: flex; align-items: center; }
+.matrix2 .cell2 { border-radius: 8px; padding: 17px 6px; text-align: center; position: relative; background: var(--wash); }
+.matrix2 .cell2 .v { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.matrix2 .cell2 .nn { font-size: 10px; margin-top: 5px; opacity: 0.72; }
+.matrix2 .cell2.peak { outline: 2px solid var(--accent); outline-offset: 2px; }
+.matrix2 .cell2 .pk { position: absolute; top: -8px; left: 50%; transform: translateX(-50%); font-size: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #fff; background: var(--accent); padding: 1px 7px; border-radius: 100px; white-space: nowrap; }
+
+.hyp-list { display: flex; flex-direction: column; gap: 11px; margin-top: 22px; }
+.hyp-row { display: grid; grid-template-columns: 58px 1fr auto; gap: 18px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 13px 18px; }
+.hyp-row.ok { background: var(--ok-soft); border-color: color-mix(in oklab, var(--ok) 30%, var(--line)); }
+.hyp-row.no { background: var(--no-soft); border-color: color-mix(in oklab, var(--no) 26%, var(--line)); }
+.hyp-row .hcode { font-weight: 700; font-size: 1.05rem; }
+.hyp-row.ok .hcode { color: var(--ok); }
+.hyp-row.no .hcode { color: var(--no); }
+.hyp-row .htitle { font-size: 0.95rem; font-weight: 600; letter-spacing: -0.01em; }
+.hyp-row .hfind { font-size: 0.82rem; color: var(--grey); margin-top: 3px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.hbars { display: inline-flex; gap: 4px; align-items: flex-end; height: 40px; }
+.hbars i { width: 15px; background: color-mix(in oklab, var(--accent) 26%, var(--wash)); border-radius: 2px 2px 0 0; display: block; }
+.hbars i.hi { background: var(--accent); }
+.hchip { font-size: 0.78rem; font-weight: 700; color: var(--ink); background: #fff; border: 1px solid var(--line); border-radius: 100px; padding: 3px 10px; }
+.hpill { font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; padding: 5px 12px; border-radius: 100px; white-space: nowrap; }
+.hpill.ok { background: var(--ok); color: #fff; }
+.hpill.no { background: var(--no); color: #fff; }
+
+.region-head { display: grid; grid-template-columns: 168px repeat(5,1fr); gap: 8px; padding: 0 14px; margin-top: 20px; }
+.region-head div { text-align: center; font-size: 10px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 600; }
+.region-head div:first-child { text-align: left; }
+.region-grid { display: flex; flex-direction: column; gap: 9px; margin-top: 8px; }
+.region-row { display: grid; grid-template-columns: 168px repeat(5,1fr); gap: 8px; align-items: center; border: 1px solid var(--line); border-radius: 10px; padding: 9px 14px; }
+.region-row .rname { font-weight: 600; font-size: 0.9rem; display: flex; align-items: center; gap: 9px; }
+.region-row .rname .rdot { width: 10px; height: 10px; border-radius: 3px; flex-shrink: 0; }
+.region-row .rname small { color: var(--faint); font-weight: 500; font-size: 11px; }
+.region-row .rname .lown { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; color: #8a6d1a; background: #fbf0cf; padding: 1px 6px; border-radius: 100px; }
+.rchip { text-align: center; border-radius: 6px; padding: 7px 4px; }
+.rchip b { display: block; font-size: 11px; font-weight: 700; }
+.rchip span { font-size: 10px; opacity: 0.85; }
+.rchip.ok { background: var(--ok-soft); color: var(--ok); }
+.rchip.no { background: var(--no-soft); color: var(--no); }
+.rchip.na { background: var(--wash); color: var(--faint); }
+@media (max-width:880px){ .res-stats{grid-template-columns:repeat(2,1fr);} .region-head{display:none;} .region-row{grid-template-columns:1fr 1fr;} }
+
+/* ===== MORPHOLOGY FIGURES ===== */
+.morph-fig { margin: 0; }
+.morph-fig img { width: 100%; max-height: 54vh; object-fit: contain; display: block; }
+.morph-take { display: grid; grid-template-columns: repeat(3,1fr); gap: 26px; margin-top: 24px; }
+.morph-take h4 { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--accent); margin-bottom: 6px; }
+.morph-take p { font-size: 0.88rem; margin: 0; }
+.morph-take p b { color: var(--ink); }
+.morph-pair { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; align-items: start; margin-top: 16px; }
+.morph-pair .morph-fig img { max-height: 56vh; }
+.morph-pair figcaption { font-size: 12px; color: var(--grey); margin-top: 10px; }
+.morph-pair figcaption b { color: var(--ink); }
+@media (max-width:880px){ .morph-take{grid-template-columns:1fr;} .morph-pair{grid-template-columns:1fr;} }
+
+/* ===== CONTRAST PHOTO ===== */
+.vs { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; margin-top: 10px; }
+.vs-side img { width: 100%; aspect-ratio: 4/3; object-fit: cover; border-radius: 6px; }
+.vs-side .lbl { display: flex; align-items: center; gap: 8px; margin-top: 14px; font-weight: 600; font-size: 0.95rem; }
+.vs-side .lbl .dot { width: 10px; height: 10px; border-radius: 50%; }
+.vs-side ul { list-style: none; margin-top: 12px; }
+.vs-side li { font-size: 0.88rem; color: var(--grey); padding: 5px 0; }
+
+/* ===== STRIP ===== */
+.strip { font-size: 13px; line-height: 1.6; color: var(--grey); margin-top: 24px; padding: 16px 18px; background: var(--accent-soft); border-radius: 6px; max-width: 70ch; }
+.strip b { color: var(--accent); font-weight: 600; }
+
+/* ===== CALLOUT ===== */
+.callout { max-width: 22ch; }
+.callout p { font-size: clamp(1.8rem,3.2vw,2.6rem); color: var(--ink); line-height: 1.18; font-weight: 400; letter-spacing: -0.03em; margin: 0; }
+.callout p em { color: var(--accent); font-style: normal; }
+
+/* ===== DIVIDER (dark, minimal) ===== */
+.divider { background: var(--ink); color: #fff; }
+.divider h2 { color: #fff; max-width: 18ch; }
+.divider h2 em { color: var(--accent); }
+.divider .eyebrow { color: var(--accent); }
+
+/* ===== VIEW-MAPS (step 0) ===== */
+#s_viewmaps { background: #060606; overflow: hidden; }
+#s_viewmaps > *:not(.vm-bg) { position: relative; z-index: 1; }
+.vm-bg { position: absolute; inset: 0; z-index: 0; overflow: hidden; }
+.vm-bg img { width: 100%; height: 100%; object-fit: cover; opacity: 0.32; filter: grayscale(0.4) brightness(0.55) contrast(1.05); }
+.vm-bg::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, rgba(4,4,4,0.74) 0%, rgba(4,4,4,0.86) 60%, rgba(4,4,4,0.93) 100%); }
+.vm-grid { display: grid; grid-template-columns: repeat(4,1fr); gap: 20px; margin-top: 30px; }
+.vm-grid figure { margin: 0; }
+.vm-grid img { width: 100%; aspect-ratio: 4/3; object-fit: contain; display: block; }
+
+/* ===== SURVEY PROCEDURE ===== */
+.survey-layout { display: grid; grid-template-columns: 0.82fr 1.18fr; gap: 48px; margin-top: 14px; align-items: start; }
+.survey-fig { margin: 0; }
+.survey-fig img { width: 100%; max-height: 74vh; object-fit: contain; display: block; background: transparent; }
+.survey-fig figcaption { font-size: 12px; color: var(--grey); margin-top: 10px; text-align: center; }
+.survey-task { display: flex; gap: 14px; align-items: baseline; margin-bottom: 16px; }
+.survey-task .tn { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); color: #fff; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; }
+.survey-task h3 { font-size: 1rem; margin-bottom: 3px; }
+.survey-task p { font-size: 0.86rem; margin: 0; }
+.survey-meta { display: flex; flex-wrap: wrap; gap: 10px 26px; margin-top: 22px; }
+.survey-meta .m .n { font-size: 1.5rem; font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.survey-meta .m .l { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); font-weight: 600; margin-top: 4px; }
+@media (max-width:880px){ .survey-layout{grid-template-columns:1fr;} .survey-fig img{max-height:none;} }
+.vm-grid figcaption { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: rgba(255,255,255,0.5); margin-top: 10px; font-weight: 600; text-align: center; }
+.vm-foot { display: flex; gap: 18px; align-items: flex-start; margin-top: 34px; max-width: 88ch; font-size: 0.95rem; line-height: 1.5; color: rgba(255,255,255,0.62); }
+.vm-foot .ico line, .vm-foot .ico polyline { stroke-width: 1.6; }
+@media (max-width:880px){ .vm-grid{grid-template-columns:repeat(2,1fr);} }
+
+/* REVEAL */
+.reveal { opacity: 0; transform: translateY(20px); transition: opacity 0.7s ease, transform 0.7s ease; }
+.reveal.in { opacity: 1; transform: translateY(0); }
+.reveal.d1{transition-delay:.08s;}.reveal.d2{transition-delay:.16s;}.reveal.d3{transition-delay:.24s;}.reveal.d4{transition-delay:.32s;}
+
+/* ===== SAVE-PDF BUTTON ===== */
+.pdf-btn { position: fixed; right: 22px; bottom: 22px; z-index: 60; display: inline-flex; align-items: center; gap: 9px; background: var(--ink); color: #fff; border: none; border-radius: 100px; padding: 12px 20px; font-family: inherit; font-size: 13px; font-weight: 600; letter-spacing: 0.01em; cursor: pointer; box-shadow: 0 6px 22px rgba(0,0,0,0.22); transition: transform .18s ease, background .18s ease; }
+.pdf-btn:hover { transform: translateY(-2px); background: #000; }
+.pdf-btn svg { width: 16px; height: 16px; }
+.html-btn { right: 22px; bottom: 70px; background: #fff; color: var(--ink); border: 1px solid var(--line); }
+.html-btn:hover { background: var(--wash); }
+
+/* ===== PRINT ===== */
+@media print {
+  @page { size: landscape; margin: 0; }
+  html, body { background:#fff !important; }
+  *, *::before, *::after { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+  .progress, .nav-dots, .pdf-btn { display:none !important; }
+  .reveal { opacity:1 !important; transform:none !important; }
+  .slide { min-height:0 !important; height:100vh !important; width:100vw !important; padding:5vh 6vw !important; overflow:hidden !important; border-top:none !important; break-after:page; page-break-after:always; break-inside:avoid; }
+  .slide:last-child { break-after:auto; page-break-after:auto; }
+  .cover, .photo-slide { padding:0 !important; }
+  .cover img, .photo-slide img { height:100vh !important; }
+  .cover-overlay { padding:5vh 6vw !important; }
+  .vm-bg img, .end-bg img { height:100% !important; }
+  #s_variables, #s_results, #s_hyp_results, #s_region_results { padding-top:4vh !important; padding-bottom:4vh !important; }
+}
+</style>
+</head>
+<body>
+<template id="__bundler_thumbnail">
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><rect width="100" height="100" fill="#1f1d1b"/><rect x="30" y="30" width="40" height="40" rx="3" fill="none" stroke="#c97b5e" stroke-width="3"/><circle cx="50" cy="50" r="6" fill="#c97b5e"/></svg>
+</template>
+
+<div class="progress" id="progress"></div>
+<nav class="nav-dots" id="navDots"></nav>
+<button class="pdf-btn" id="pdfBtn" aria-label="Save as PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"></path><path d="M7 11l5 5 5-5"></path><path d="M4 19h16"></path></svg>Save PDF</button>
+<button class="pdf-btn html-btn" id="htmlBtn" aria-label="Save as HTML"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 7l-5 5 5 5"></path><path d="M16 7l5 5-5 5"></path></svg>Save HTML</button>
+
+<!-- COVER -->
+<section class="slide cover" id="s0">
+  <img src="photos/p_cover.jpg" alt="">
+  <div class="cover-overlay">
+    <div class="reveal" style="font-size:13px; font-weight:600; letter-spacing:0.06em;">MUDP1004 — MIDTERM REVIEW</div>
+    <div>
+      <h1 class="reveal d1">Traces of <em>Life</em></h1>
+      <p class="sub reveal d2">An EEG and behavioural study of affective response to old versus new public housing in Hong Kong.</p>
+    </div>
+    <div class="cover-foot reveal d3">
+      <div><b>Alina Viven Shults</b><br>Master of Urban Design — The University of Hong Kong</div>
+      <div style="text-align:right;">Supervisor <b>Dr. Alice Vialard</b> · Co-supervisor <b>Dr. Waishan Qiu</b><br><span class="ac">Advisor Dr. Bin Jiang</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- OPENING / PHOTO -->
+<section class="slide photo-slide" id="s_story">
+  <img src="photos/p_open.jpg" alt="">
+  <div class="photo-tint"></div>
+  <div class="photo-cap">
+    <div class="t reveal">The question behind the question</div>
+    <h2 class="reveal d1">A building that simply felt more <em style="color:var(--accent)">alive</em>.</h2>
+  </div>
+</section>
+
+<!-- OPENING TEXT -->
+<section class="slide" id="s_story2">
+  <div class="two-col">
+    <div>
+      <div class="eyebrow reveal">A personal beginning</div>
+      <p class="reveal d1 big-lead">People weren't there — yet their <em>traces</em> were everywhere. And it felt good.</p>
+    </div>
+    <div>
+      <p class="reveal d2">One evening I visited one of Hong Kong's oldest functioning housing estates — soon to be demolished. It felt better to me than many polished new developments. Not nicer. <em class="it">More alive.</em></p>
+      <p class="reveal d3">Laundry on poles, plants on ledges, grilles, small personal things. The <strong>presence of life</strong>, written onto the architecture over decades.</p>
+      <div class="strip reveal d4"><b>The root question:</b> how do the traces left by other inhabitants shape whether a place feels welcoming — or threatening?</div>
+    </div>
+  </div>
+</section>
+
+<!-- RATIONALE -->
+<section class="slide" id="s2">
+  <div class="eyebrow reveal">Why this — why now</div>
+  <h2 class="reveal d1">Two eras of public housing,<br>side by side.</h2>
+  <div class="two-col">
+    <div>
+      <p class="reveal d2"><strong>Hong Kong is hard to study.</strong> The city is visually chaotic — to isolate a perceptual effect, the setting must be near-monolithic. Public housing is ideal: one architectural design, repeated across a whole estate.</p>
+      <p class="reveal d3">The <strong>old estates of the 1950s–60s</strong> are being demolished and replaced by <strong>new high-rises</strong>. An urgent question follows.</p>
+    </div>
+    <div class="callout reveal d3">
+      <p>Is the new really <em>better</em> — and do the old estates deserve demolition?</p>
+    </div>
+  </div>
+</section>
+
+<!-- VARIABLES FRAMEWORK -->
+<section class="slide" id="s_variables" data-screen-label="Variables framework">
+  <div class="eyebrow reveal">Methodology · the full picture</div>
+  <h2 class="reveal d1">Variables &amp; hypotheses, in one framework.</h2>
+  <div class="vf reveal d2">
+
+    <div class="vf-band">
+      <div class="vf-lbl">Independent<span>manipulated</span></div>
+      <div class="vf-iv">
+        <div class="vf-card core">
+          <div class="vf-role">Core construct</div>
+          <h4>Inhabited Visual Complexity</h4>
+          <p>Visual complexity from resident-added elements — laundry, AC units, plants, grilles — built up through inhabitation. Manipulated by inpainting at low / medium / high density.</p>
+          <div class="hyp"><b>H1</b> — ↑ IVC → ↑ frontal alpha asymmetry (approach) &amp; ↑ frontal alpha.</div>
+        </div>
+        <div class="vf-card muted">
+          <div class="vf-role">Contrast</div>
+          <h4>Weathering organization</h4>
+          <p>Equal weathering "dose", varied spatial order — uniform patina vs. clustered decay. Procedural overlay: equal mean, different variance.</p>
+          <div class="hyp"><b>H2</b> — ordered → ↑ alpha (fascination); disordered → ↑ beta (threat).</div>
+        </div>
+        <div class="vf-card muted">
+          <div class="vf-role">Positive control</div>
+          <h4>Greenery</h4>
+          <p>Presence of vegetation on the facade, geometry held constant. Added / removed by inpainting.</p>
+          <div class="hyp"><b>H3</b> — ↑ greenery → ↑ alpha, ↓ beta, ↑ approach (sanity check).</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vf-band">
+      <div class="vf-lbl">Morphological metrics<span>measured</span></div>
+      <div class="vf-chips">
+        <div class="vf-chip"><div class="k">IED</div><div class="d">Inhabited element density</div><div class="m">YOLOv8</div></div>
+        <div class="vf-chip"><div class="k">VE</div><div class="d">Visual entropy</div><div class="m">Shannon</div></div>
+        <div class="vf-chip"><div class="k">GVI</div><div class="d">Green view index</div><div class="m">% green</div></div>
+        <div class="vf-chip"><div class="k">Enclosure</div><div class="d">Sky-view factor (inv.)</div><div class="m">% sky</div></div>
+        <div class="vf-chip"><div class="k">FRI</div><div class="d">Facade rhythm index</div><div class="m">SD luminance</div></div>
+        <div class="vf-chip"><div class="k">Spatial org.</div><div class="d">Weathering distribution</div><div class="m">Moran's I</div></div>
+      </div>
+    </div>
+
+    <div class="vf-band">
+      <div class="vf-lbl">Dependent<span>EEG + self-report</span></div>
+      <div class="vf-dv">
+        <div class="vf-card">
+          <h4>EEG — Emotiv EPOC X · 14 ch</h4>
+          <div class="cols">
+            <div>
+              <div class="sub">Primary</div>
+              <ul><li>FAA — frontal alpha asymmetry</li><li>Frontal alpha (8–12 Hz)</li><li>Frontal beta (18–30 Hz)</li></ul>
+            </div>
+            <div>
+              <div class="sub">Secondary</div>
+              <ul><li>Theta / beta ratio</li><li>Engagement β/(α+θ)</li></ul>
+            </div>
+          </div>
+          <div class="ch">Channels: AF3 · AF4 · F3 · F4 · F7 · F8</div>
+        </div>
+        <div class="vf-card">
+          <h4>Self-report — convergent validity</h4>
+          <div class="cols">
+            <div>
+              <div class="sub">Affective</div>
+              <ul><li>SAM — valence &amp; arousal</li><li>PRS-11 restorativeness</li><li>Fascination · coherence · hominess</li></ul>
+            </div>
+            <div>
+              <div class="sub">Manip. check</div>
+              <ul><li>Patina vs. decay</li><li>Artificiality</li><li>Estate familiarity</li></ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="vf-band">
+      <div class="vf-lbl">Controls<span>moderators &amp; covariates</span></div>
+      <div class="vf-mod">
+        <div>
+          <div class="h">Moderators (exploratory)</div>
+          <ul><li>Housing experience — lived in public housing</li><li>Familiarity with Wah Fu / Sai Wan</li></ul>
+        </div>
+        <div>
+          <div class="h">Covariates (controlled)</div>
+          <ul><li>Age · gender · handedness (right-handed only)</li><li>Sleep · caffeine · time of session</li></ul>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  <p class="vf-foot reveal d3">Primary contrast uses real photographs · estate entered as a random effect · generative IVC variants validated as a separate, labelled condition.</p>
+</section>
+
+<!-- THEORY -->
+<section class="slide" id="s3">
+  <div class="eyebrow reveal">Theoretical framework</div>
+  <h2 class="reveal d1">Three established theories,<br>one new idea.</h2>
+  <div class="three-col reveal d2">
+    <div class="concept">
+      <svg class="ico" width="48" height="48" viewBox="0 0 48 48"><path d="M10 30 C10 22 16 18 24 18 C32 18 38 22 38 30"/><path class="ac" d="M24 18 C24 14 26 11 30 11"/><circle cx="24" cy="34" r="2"/></svg>
+      <h3>Restoration</h3>
+      <p>Calm, softly fascinating places let attention recover. <span style="color:var(--accent)">(ART, 1989)</span></p>
+    </div>
+    <div class="concept">
+      <svg class="ico" width="48" height="48" viewBox="0 0 48 48"><path d="M24 38 C14 30 10 24 10 18 C10 13 14 10 18 12 C21 13 24 17 24 17 C24 17 27 13 30 12 C34 10 38 13 38 18 C38 24 34 30 24 38 Z"/><polyline class="ac" points="14,24 20,24 23,19 26,28 29,24 34,24"/></svg>
+      <h3>Stress recovery</h3>
+      <p>Low-threat environments calm the body. <span style="color:var(--accent)">(SRT, 1983)</span></p>
+    </div>
+    <div class="concept">
+      <svg class="ico" width="48" height="48" viewBox="0 0 48 48"><path d="M8 34 C16 34 16 16 24 16 C32 16 32 34 40 34"/></svg>
+      <h3>The sweet spot</h3>
+      <p>We like moderate complexity — not too empty, not too much. <span style="color:var(--accent)">(1960)</span></p>
+    </div>
+  </div>
+  <div class="strip reveal d3" style="display:flex; gap:18px; align-items:center; background:var(--wash); max-width:none;">
+    <svg class="ico" width="40" height="40" viewBox="0 0 48 48" style="flex-shrink:0;"><rect x="10" y="10" width="28" height="28"/><line class="ac" x1="16" y1="16" x2="16" y2="20"/><line class="ac" x1="22" y1="16" x2="22" y2="22"/><line class="ac" x1="16" y1="26" x2="16" y2="32"/><line class="ac" x1="32" y1="24" x2="34" y2="24"/></svg>
+    <span style="color:var(--ink);"><strong>The new idea — Inhabited Visual Complexity (IVC):</strong> <span style="color:var(--grey)">the visual richness that builds up through decades of living — laundry, plants, grilles, signage. Never measured in neuroscience before.</span></span>
+  </div>
+</section>
+
+<!-- WHAT IVC LOOKS LIKE -->
+<section class="slide" id="s_ivc_photos">
+  <div class="eyebrow reveal">Inhabited Visual Complexity — in the real world</div>
+  <h2 class="reveal d1">This is what we mean<br>by <em>traces of life</em>.</h2>
+  <div class="ivc-photo-grid reveal d2">
+    <figure><img src="photos/g_laundry.jpg" alt=""><figcaption>Laundry &amp; bedding on railings</figcaption></figure>
+    <figure><img src="photos/g_plants.jpg" alt=""><figcaption>Potted plants on a rooftop</figcaption></figure>
+    <figure><img src="photos/g_altar.jpg" alt=""><figcaption>A makeshift shrine &amp; stored things</figcaption></figure>
+    <figure><img src="photos/g_window.jpg" alt=""><figcaption>A window packed with daily life</figcaption></figure>
+  </div>
+  <p class="reveal d3" style="text-align:center; max-width:64ch; margin:24px auto 0;">None of this is designed. It accumulates as people live — and it may be exactly what makes older estates feel <strong style="color:var(--accent)">alive</strong>.</p>
+</section>
+
+<!-- INVERTED-U INFOGRAPHIC -->
+<section class="slide" id="s_uchart">
+  <div class="eyebrow reveal">The core idea, in one curve</div>
+  <h2 class="reveal d1">Why old estates may feel <em>better</em>.</h2>
+  <div class="uchart reveal d2">
+    <svg viewBox="0 0 760 420" width="100%">
+      <!-- axes -->
+      <line x1="80" y1="350" x2="720" y2="350" stroke="#1f1d1b" stroke-width="1.4"/>
+      <line x1="80" y1="350" x2="80" y2="40" stroke="#1f1d1b" stroke-width="1.4"/>
+      <!-- y label -->
+      <text transform="translate(46 215) rotate(-90)" text-anchor="middle" font-size="13" fill="#777068" font-weight="600" letter-spacing="0.04em">RESTORATION →</text>
+      <text x="80" y="385" font-size="13" fill="#777068" font-weight="600" letter-spacing="0.04em">VISUAL COMPLEXITY →</text>
+      <!-- inverted U curve -->
+      <path d="M110 340 Q 400 30 690 340" fill="none" stroke="#c97b5e" stroke-width="2.5"/>
+      <!-- new point (left, low) -->
+      <circle cx="180" cy="250" r="7" fill="#1f1d1b"/>
+      <text x="195" y="245" font-size="15" fill="#1f1d1b" font-weight="600">New estates</text>
+      <text x="195" y="265" font-size="12.5" fill="#777068">monotony — too little</text>
+      <!-- old point (near peak) -->
+      <circle cx="400" cy="75" r="7" fill="#c97b5e"/>
+      <text x="400" y="58" font-size="15" fill="#c97b5e" font-weight="600" text-anchor="middle">Old estates</text>
+      <!-- overwhelm zone (right) -->
+      <circle cx="650" cy="200" r="7" fill="none" stroke="#1f1d1b" stroke-width="1.4"/>
+      <text x="631" y="195" font-size="15" fill="#777068" font-weight="600" text-anchor="end">Visual chaos</text>
+      <text x="631" y="215" font-size="12.5" fill="#b2aaa2" text-anchor="end">overwhelm — too much</text>
+      <!-- dashed guide to peak -->
+      <line x1="400" y1="85" x2="400" y2="350" stroke="#ececea" stroke-width="1.4" stroke-dasharray="3 4"/>
+      <text x="400" y="370" font-size="12" fill="#b2aaa2" text-anchor="middle">"sweet spot"</text>
+    </svg>
+  </div>
+  <p class="reveal d3" style="text-align:center; max-width:64ch; margin:20px auto 0;">New towers are clean but <strong>monotonous</strong> — sitting low on the left. The accumulated life of older estates may push them toward the <strong style="color:var(--accent)">peak</strong>, where environments feel most restorative.</p>
+</section>
+
+<!-- HYPOTHESES VISUAL -->
+<section class="slide" id="s3b">
+  <div class="eyebrow reveal">What the data should show</div>
+  <h2 class="reveal d1">Four predictions.</h2>
+  <div class="hyp-grid reveal d2">
+    <div class="hyp-card">
+      <svg class="ico" width="44" height="44" viewBox="0 0 48 48"><circle cx="16" cy="24" r="8"/><circle cx="32" cy="24" r="8"/><path class="ac" d="M31 18 L34.5 15 M34.5 15 L32.8 15.2 M34.5 15 L34.6 16.7"/></svg>
+      <div><div class="code">Approach, not withdrawal</div><div class="d">Old estates → brain signature of <b>moving toward</b>, not away (frontal alpha asymmetry).</div></div>
+    </div>
+    <div class="hyp-card">
+      <svg class="ico" width="44" height="44" viewBox="0 0 48 48"><polyline points="8,30 14,30 18,20 22,34 26,24 30,28 40,28"/></svg>
+      <div><div class="code">Calmer</div><div class="d">Old estates → <b>higher alpha</b> waves → a more relaxed, restorative state.</div></div>
+    </div>
+    <div class="hyp-card">
+      <svg class="ico" width="44" height="44" viewBox="0 0 48 48"><polyline class="ac" points="8,28 11,28 13,18 16,34 18,22 20,30 23,16 25,30 28,20 30,28 40,28"/></svg>
+      <div><div class="code">More tense</div><div class="d">New towers → <b>higher beta</b> waves → more cognitive arousal / stress.</div></div>
+    </div>
+    <div class="hyp-card">
+      <svg class="ico" width="44" height="44" viewBox="0 0 48 48"><line x1="10" y1="38" x2="10" y2="10"/><line x1="10" y1="38" x2="38" y2="38"/><path class="ac" d="M12 34 C22 34 24 16 36 16"/></svg>
+      <div><div class="code">Driven by IVC</div><div class="d">More <b>traces of life</b> → more positive response, following the inverted-U.</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- METHODOLOGY OVERVIEW (phase diagram) -->
+<section class="slide" id="s_methodology" data-screen-label="Methodology overview">
+  <div class="eyebrow reveal">From theory to a study</div>
+  <h2 class="reveal d1">The research design,<br>end to end.</h2>
+  <figure class="reveal d2" style="margin:20px 0 0;">
+    <img src="photos/methodology_diagram.png" alt="Research methodology — four phases" style="width:100%; border:1px solid var(--line); border-radius:6px; display:block; background:#fff;">
+  </figure>
+  <p class="reveal d3" style="font-size:12px; color:var(--grey); margin-top:14px; max-width:none;">Four phases — matched stimuli · parallel scene-quantification &amp; EEG measurement · linear mixed models · five hypotheses tested.</p>
+</section>
+
+<!-- STEP 0 — VIEW MAPS (ABANDONED) -->
+<section class="slide divider" id="s_viewmaps" data-screen-label="Step 0 — view maps">
+  <div class="vm-bg"><img src="photos/vm_bg.jpg" alt=""></div>
+  <div class="eyebrow reveal">Method · Step 00 — a path not taken</div>
+  <h2 class="reveal d1" style="max-width:20ch;">We started with <em>view maps</em> —<br>then let them go.</h2>
+  <p class="reveal d2" style="color:rgba(255,255,255,0.62); max-width:60ch;">Before the photographic survey, the first step was a <strong style="color:#fff;">visibility (isovist) analysis</strong> of each estate — mapping how much of the surroundings is seen from every point in the shared space.</p>
+  <div class="vm-grid reveal d3">
+    <figure><img src="photos/vm_wah_fu.png" alt="Wah Fu view map"><figcaption>Wah Fu</figcaption></figure>
+    <figure><img src="photos/vm_sai_wan.png" alt="Sai Wan view map"><figcaption>Sai Wan</figcaption></figure>
+    <figure><img src="photos/vm_choi_hum.png" alt="Choi Hung view map"><figcaption>Choi Hung</figcaption></figure>
+    <figure><img src="photos/vm_fuk_loi.png" alt="Fuk Loi view map"><figcaption>Fuk Loi</figcaption></figure>
+  </div>
+  <div class="vm-foot reveal d4">
+    <svg class="ico" width="34" height="34" viewBox="0 0 48 48" style="flex-shrink:0;"><polyline points="6,40 18,22 26,30 42,8" style="stroke:#c97b5e;"></polyline><polyline points="32,8 42,8 42,18" style="stroke:#c97b5e;"></polyline></svg>
+    <span><strong style="color:#fff;">Why we abandoned it:</strong> Hong Kong's estates sit on steep, terraced topography. The maps assume a flat datum, so vertical level changes — ramps, podia, retaining walls — broke the visibility model and made the values impossible to compare across sites. The study moved instead to a controlled <span style="color:#c97b5e;">photographic survey</span>.</span>
+  </div>
+</section>
+
+<!-- DESIGN: 6 TYPOLOGIES -->
+<section class="slide" id="s4a">
+  <div class="eyebrow reveal">The study design</div>
+  <h2 class="reveal d1">Old versus new —<br>across six spatial typologies.</h2>
+  <p class="reveal d2" style="max-width:74ch;">Two old estates (Wah Fu, Sai Wan) and two new ones (New So Uk, Kai Long Court). Each is photographed across the <strong>same six kinds of shared space</strong> — so we compare like with like, and measuring openness directly separates <strong>era</strong> from <strong>enclosure</strong>.</p>
+  <div class="typ-grid reveal d3">
+    <div class="typ"><div class="pair"><figure><img src="photos/t_edge_old.jpg" alt=""><span>old</span></figure><figure><img src="photos/t_edge_new.jpg" alt=""><span>new</span></figure></div><div class="tname">Edge</div></div>
+    <div class="typ"><div class="pair"><figure><img src="photos/t_path_old.jpg" alt=""><span>old</span></figure><figure><img src="photos/t_path_new.jpg" alt=""><span>new</span></figure></div><div class="tname">Estate pathway</div></div>
+    <div class="typ"><div class="pair"><figure><img src="photos/t_cov_old.jpg" alt=""><span>old</span></figure><figure><img src="photos/t_cov_new.jpg" alt=""><span>new</span></figure></div><div class="tname">Covered pathway</div></div>
+    <div class="typ"><div class="pair"><figure><img src="photos/t_play_old.jpg" alt=""><span>old</span></figure><figure><img src="photos/t_play_new.jpg" alt=""><span>new</span></figure></div><div class="tname">Playground</div></div>
+    <div class="typ"><div class="pair"><figure><img src="photos/t_sport_old.jpg" alt=""><span>old</span></figure><figure><img src="photos/t_sport_new.jpg" alt=""><span>new</span></figure></div><div class="tname">Sports ground</div></div>
+    <div class="typ"><div class="pair"><figure><img src="photos/t_sit_old.jpg" alt=""><span>old</span></figure><figure><img src="photos/t_sit_new.jpg" alt=""><span>new</span></figure></div><div class="tname">Sitting-out area</div></div>
+  </div>
+</section>
+
+<!-- NORMALISATION -->
+<section class="slide" id="s4_norm">
+  <div class="eyebrow reveal">Stimulus preparation</div>
+  <h2 class="reveal d1">Controlling everything<br>except the building.</h2>
+  <div class="norm-layout">
+    <div class="norm-charts reveal d2">
+      <img src="photos/na_groupmeans.jpg" alt="">
+      <img src="photos/na_difference.jpg" alt="">
+      <div class="strip" style="margin-top:4px;">After normalisation, old &amp; new are <b>matched</b> on every property — below the 1-unit threshold (✓).</div>
+    </div>
+    <div class="norm-steps reveal d3">
+      <div class="norm-step">
+        <div class="step-label"><span class="num">1</span> Weather varies between days</div>
+        <div class="norm-pair">
+          <figure><img src="photos/w_sun.jpg" alt=""><figcaption>Same path — sun</figcaption></figure>
+          <figure><img src="photos/w_cloud.jpg" alt=""><figcaption>Same path — overcast</figcaption></figure>
+        </div>
+      </div>
+      <div class="norm-step" style="margin-top:24px;">
+        <div class="step-label"><span class="num">2</span> Equalised in code — brightness, contrast, colour</div>
+        <div class="norm-pair">
+          <figure><img src="photos/na_before.jpg" alt=""><figcaption>Before</figcaption></figure>
+          <figure><img src="photos/na_after.jpg" alt=""><figcaption class="ac">After</figcaption></figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- IVC GRADIENT -->
+<section class="slide" id="s4b">
+  <div class="eyebrow reveal">Isolating the new variable</div>
+  <h2 class="reveal d1">Building the gradient<br>of inhabitation.</h2>
+  <p class="reveal d2" style="max-width:66ch;">From one base facade, traces of life accumulate step by step — everything else held identical. This lets us test the effect of <strong>IVC</strong> on its own.</p>
+  <div class="grad-row reveal d3">
+    <div class="grad-cell"><figure><img src="photos/grad_0.jpg" alt=""></figure><div class="pct" style="color:var(--faint)">0%</div><div class="lbl">Baseline</div></div>
+    <div class="grad-cell"><figure><img src="photos/grad_33.jpg" alt=""></figure><div class="pct" style="color:#dba88f">33%</div><div class="lbl">Low</div></div>
+    <div class="grad-cell"><figure><img src="photos/grad_66.jpg" alt=""></figure><div class="pct" style="color:#cf8a6c">66%</div><div class="lbl">Medium</div></div>
+    <div class="grad-cell hi"><figure><img src="photos/grad_100.jpg" alt=""></figure><div class="pct">100%</div><div class="lbl">High</div></div>
+  </div>
+  <div class="reveal d4" style="display:flex; align-items:center; gap:24px; margin-top:24px;">
+    <div style="display:flex; gap:8px; align-items:center;">
+      <div class="ivc-vis" id="iv0" style="width:46px;height:46px;border:1px solid var(--line);border-radius:3px;"></div>
+      <div class="ivc-vis" id="iv33" style="width:46px;height:46px;border:1px solid var(--line);border-radius:3px;"></div>
+      <div class="ivc-vis" id="iv66" style="width:46px;height:46px;border:1px solid var(--line);border-radius:3px;"></div>
+      <div class="ivc-vis" id="iv100" style="width:46px;height:46px;border:1px solid var(--line);border-radius:3px;"></div>
+    </div>
+    <span style="font-size:12px; color:var(--grey);">Quantified as rising <b style="color:var(--ink)">inhabited element density</b> — the count of life-traces per image.</span>
+  </div>
+  <div class="strip reveal d4" style="margin-top:18px;">Generated variants are a <b>separate, clearly-labelled condition</b> — the main comparison uses real photographs only.</div>
+</section>
+
+<!-- IVC ACROSS TYPOLOGIES -->
+<section class="slide" id="s4_typ_ivc">
+  <div class="eyebrow reveal">The same gradient, every typology</div>
+  <h2 class="reveal d1">Five levels of IVC,<br>across all six typologies.</h2>
+  <p class="reveal d2" style="max-width:74ch;">The inhabitation gradient isn't only for facades — it's generated for every spatial typology, each at <strong>five levels</strong> (0 → 100%). Rows are typologies; columns step from empty to densely inhabited.</p>
+  <div class="sheet-row reveal d3">
+    <img src="photos/typ_sheet1.jpg" alt="">
+    <img src="photos/typ_sheet2.jpg" alt="">
+  </div>
+  <p class="reveal d4" style="font-size:12px; color:var(--grey); margin-top:14px; max-width:none;">Typologies shown: edge · estate pathway · covered pathway · playground · sports ground · sitting-out area — left columns empty, right columns fully lived-in.</p>
+</section>
+
+<!-- PROCESSING PIPELINE (code logic) -->
+<section class="slide" id="s_pipeline_code" data-screen-label="Processing pipeline">
+  <div class="eyebrow reveal">The processing pipeline · code</div>
+  <h2 class="reveal d1">Three scripts turn<br>photos into a dataset.</h2>
+  <div class="two-col" style="grid-template-columns:1.05fr 0.95fr; align-items:center;">
+    <div class="reveal d2">
+      <figure style="margin:0;">
+        <img src="photos/pipeline_flow.jpg" alt="Photo-processing pipeline flow" style="width:100%; border:1px solid var(--line); border-radius:6px; display:block; background:var(--wash); padding:10px;">
+      </figure>
+    </div>
+    <div class="reveal d3">
+      <p>Every photograph runs through a fixed, reproducible chain — two automated scripts and a final analysis stage, with light manual regrouping in between:</p>
+      <div style="display:flex; flex-direction:column; gap:16px; margin-top:18px;">
+        <div style="display:flex; gap:14px; align-items:baseline;"><span style="font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums;">1</span><div><strong>IVC_Batch_Generator</strong><br><span style="font-size:0.88rem; color:var(--grey);">generates 5 inhabitation variants (0–100%) per base view.</span></div></div>
+        <div style="display:flex; gap:14px; align-items:baseline;"><span style="font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums;">2</span><div><strong>normalize_stimuli_2</strong><br><span style="font-size:0.88rem; color:var(--grey);">equalises luminance &amp; colour in CIELAB so era is the only variable.</span></div></div>
+        <div style="display:flex; gap:14px; align-items:baseline;"><span style="font-weight:700; color:var(--accent); font-variant-numeric:tabular-nums;">3</span><div><strong>HK_image_analysis_pipeline</strong><br><span style="font-size:0.88rem; color:var(--grey);">segments each image &amp; extracts ~40 morphological variables.</span></div></div>
+      </div>
+      <div class="strip" style="margin-top:20px;">Output: <b>morphology_variables.csv</b> — one row per image, fed straight into the EEG analysis.</div>
+    </div>
+  </div>
+</section>
+
+<!-- PIPELINE -->
+<section class="slide" id="s4c">
+  <div class="eyebrow reveal">From photo to data</div>
+  <h2 class="reveal d1">How each image<br>becomes numbers.</h2>
+  <p class="reveal d2" style="max-width:72ch;">Every photo is segmented pixel-by-pixel by a vision model, then turned into ~20 morphological variables. The segmentation already <strong>sees</strong> the difference between an empty and an inhabited space.</p>
+  <div class="sem-grid reveal d3" style="margin-top:8px;">
+    <div>
+      <div class="sem-pair">
+        <img src="photos/sem_photo.jpg" alt="">
+        <img src="photos/sem_mask.jpg" alt="">
+      </div>
+      <div class="sem-cap"><b>Empty pathway</b> → mostly ceiling, wall, floor.</div>
+    </div>
+    <div>
+      <div class="sem-pair">
+        <img src="photos/sem_photo2.jpg" alt="">
+        <img src="photos/sem_mask2.jpg" alt="">
+      </div>
+      <div class="sem-cap"><b>Inhabited pathway</b> → plants, objects, laundry detected.</div>
+    </div>
+  </div>
+  <div class="three-col reveal d4" style="margin-top:36px; gap:24px;">
+    <div><h3 style="font-size:0.95rem;">Space &amp; openness</h3><p style="font-size:0.85rem;">Sky, green, enclosure, height, permeability, human scale.</p></div>
+    <div><h3 style="font-size:0.95rem;">Visual complexity</h3><p style="font-size:0.85rem;">Entropy, edge density, clutter, facade rhythm.</p></div>
+    <div><h3 style="font-size:0.95rem; color:var(--accent);">New — traces of life</h3><p style="font-size:0.85rem;">Inhabited element density, patina, visual entropy.</p></div>
+  </div>
+</section>
+
+<!-- MORPHOLOGY · MANIPULATION CHECK -->
+<section class="slide" id="s_morph1" data-screen-label="Variables — manipulation check">
+  <div class="eyebrow reveal">Photo characteristics as variables · manipulation check</div>
+  <h2 class="reveal d1">The traces of life<br>show up in the numbers.</h2>
+  <figure class="morph-fig reveal d2">
+    <img src="photos/morph_fig2_ivc.png" alt="IVC manipulation check — morphological metrics across inhabited-complexity levels">
+  </figure>
+  <div class="morph-take reveal d3">
+    <div><h4>The gradient is real</h4><p><b>Semantic class count (ρ +0.53***)</b>, object density (+0.53***) and colour entropy (+0.49***) all climb with IVC — the manipulation does what it claims.</p></div>
+    <div><h4>Richness, not noise</h4><p>Edge density actually <b>falls</b> (−0.10 ns): added life reads as <b>objects and colour</b>, not raw visual clutter.</p></div>
+    <div><h4>Holds for both eras</h4><p>Modern and vernacular facades follow the <b>same upward curve</b> — a shared, controlled scale of inhabitation.</p></div>
+  </div>
+</section>
+
+<!-- MORPHOLOGY · ERA DIFFERENCES -->
+<section class="slide" id="s_morph2" data-screen-label="Variables — era differences">
+  <div class="eyebrow reveal">Photo characteristics as variables · era differences</div>
+  <h2 class="reveal d1">Old and new have distinct<br>morphological signatures.</h2>
+  <div class="two-col" style="grid-template-columns:1.25fr 0.75fr; align-items:center;">
+    <figure class="morph-fig reveal d2">
+      <img src="photos/morph_fig3_diff.png" alt="Morphological differences modern vs vernacular — effect sizes" style="max-height:64vh;">
+    </figure>
+    <div class="reveal d3">
+      <p style="margin-bottom:18px;"><strong>Modern</strong> estates score higher on <b>permeability</b>, visual entropy, enclosure, facade rhythm and building bulk (BVI / VDI).</p>
+      <p style="margin-bottom:18px;"><strong>Vernacular</strong> (old) estates score higher on <b>openness</b>, semantic entropy, edge density, sky view and ceiling cover.</p>
+      <div class="strip">Every difference shown clears <b>|r| &gt; 0.30</b> with a 95% bootstrap CI — the two eras are genuinely, measurably different kinds of space.</div>
+    </div>
+  </div>
+</section>
+
+<!-- MORPHOLOGY · STRUCTURE -->
+<section class="slide" id="s_morph3" data-screen-label="Variables — structure">
+  <div class="eyebrow reveal">Photo characteristics as variables · structure</div>
+  <h2 class="reveal d1">Two eras, one<br>morphological map.</h2>
+  <div class="morph-pair reveal d2">
+    <figure class="morph-fig">
+      <img src="photos/morph_fig7_pca.png" alt="PCA of the morphological space">
+      <figcaption><b>PCA.</b> PC1 (28%) cleanly separates <b>modern from vernacular</b>; PC2 (23%) tracks spatial typology — covered pathways up top, sitting areas below.</figcaption>
+    </figure>
+    <figure class="morph-fig">
+      <img src="photos/morph_fig6_corr.png" alt="Inter-variable Spearman correlation matrix">
+      <figcaption><b>Redundancy.</b> A few metrics are near-duplicates — enclosure ↔ ceiling (−1.00), openness ↔ VDI (−0.95), VDI ↔ GVI (+0.94) — collapsed before modelling so each variable earns its place.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<!-- EEG -->
+<section class="slide" id="s4d">
+  <div class="eyebrow reveal">Measuring the response</div>
+  <h2 class="reveal d1">Reading the brain's<br>emotional signal.</h2>
+  <div class="two-col">
+    <div class="reveal d2">
+      <figure class="eeg-fig">
+        <svg viewBox="0 0 380 408" width="100%" role="img" aria-label="EPOC X 14-channel electrode montage">
+          <!-- nose -->
+          <path d="M190 26 L175 50 Q190 43 205 50 Z" fill="#faf9f7" stroke="#c4beb6" stroke-width="1.4" stroke-linejoin="round"/>
+          <!-- ears -->
+          <path d="M34 198 q-15 2 -15 20 q0 18 15 20" fill="none" stroke="#c4beb6" stroke-width="1.4"/>
+          <path d="M346 198 q15 2 15 20 q0 18 -15 20" fill="none" stroke="#c4beb6" stroke-width="1.4"/>
+          <!-- head -->
+          <circle cx="190" cy="202" r="156" fill="#faf9f7" stroke="#d9d4ce" stroke-width="1.6"/>
+          <line x1="190" y1="48" x2="190" y2="356" stroke="#ececea" stroke-width="1.2"/>
+          <!-- L / R -->
+          <text x="120" y="206" text-anchor="middle" font-size="11" font-weight="700" fill="#b2aaa2" letter-spacing="0.08em">L</text>
+          <text x="260" y="206" text-anchor="middle" font-size="11" font-weight="700" fill="#b2aaa2" letter-spacing="0.08em">R</text>
+          <!-- frontal-pair highlight ring -->
+          <rect x="118" y="86" width="144" height="98" rx="20" fill="none" stroke="#c97b5e" stroke-width="1.2" stroke-dasharray="4 4" opacity="0.7"/>
+          <!-- electrodes: accent = frontal alpha-asymmetry pair -->
+          <g font-size="9.5" font-weight="700" text-anchor="middle">
+            <g><circle cx="160" cy="112" r="17" fill="#c97b5e"/><text x="160" y="115.5" fill="#fff">AF3</text></g>
+            <g><circle cx="220" cy="112" r="17" fill="#c97b5e"/><text x="220" y="115.5" fill="#fff">AF4</text></g>
+            <g><circle cx="98" cy="136" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="98" y="139.5" fill="#1f1d1b">F7</text></g>
+            <g><circle cx="150" cy="160" r="17" fill="#c97b5e"/><text x="150" y="163.5" fill="#fff">F3</text></g>
+            <g><circle cx="230" cy="160" r="17" fill="#c97b5e"/><text x="230" y="163.5" fill="#fff">F4</text></g>
+            <g><circle cx="282" cy="136" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="282" y="139.5" fill="#1f1d1b">F8</text></g>
+            <g><circle cx="90" cy="204" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="90" y="207.5" fill="#1f1d1b">FC5</text></g>
+            <g><circle cx="290" cy="204" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="290" y="207.5" fill="#1f1d1b">FC6</text></g>
+            <g><circle cx="60" cy="214" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="60" y="217.5" fill="#1f1d1b">T7</text></g>
+            <g><circle cx="320" cy="214" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="320" y="217.5" fill="#1f1d1b">T8</text></g>
+            <g><circle cx="106" cy="276" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="106" y="279.5" fill="#1f1d1b">P7</text></g>
+            <g><circle cx="274" cy="276" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="274" y="279.5" fill="#1f1d1b">P8</text></g>
+            <g><circle cx="160" cy="314" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="160" y="317.5" fill="#1f1d1b">O1</text></g>
+            <g><circle cx="220" cy="314" r="17" fill="#fff" stroke="#1f1d1b" stroke-width="1.4"/><text x="220" y="317.5" fill="#1f1d1b">O2</text></g>
+          </g>
+          <text x="190" y="396" text-anchor="middle" font-size="11" fill="#777068" font-weight="600">FRONT ▲ — international 10–20 system · 14 channels</text>
+        </svg>
+        <figcaption>The <strong style="color:var(--accent)">accent four (AF3·AF4·F3·F4)</strong> sit over the prefrontal cortex — the critical site for frontal alpha asymmetry. <strong>CMS/DRL</strong> reference &amp; ground sit behind the ears (P3/P4).</figcaption>
+      </figure>
+    </div>
+    <div>
+      <p class="reveal d2">A <strong>14-channel EEG</strong> headset records brain activity while participants view each estate. Sensor <strong>placement decides what we can read</strong> — each signal lives over a specific part of the scalp:</p>
+      <div class="reveal d3 eeg-sig" style="margin-top:18px;">
+        <div><strong style="color:var(--accent)">Alpha asymmetry</strong><span class="loc">frontal · AF3/AF4 · F3/F4</span><span class="d">approach vs. withdrawal</span></div>
+        <div><strong style="color:var(--accent)">Alpha power</strong><span class="loc">posterior · O1/O2 · P7/P8</span><span class="d">relaxation</span></div>
+        <div><strong style="color:var(--accent)">Beta power</strong><span class="loc">fronto-central · F3/F4 · FC5/FC6</span><span class="d">arousal / stress</span></div>
+        <div><strong style="color:var(--accent)">Engagement</strong><span class="loc">frontal + parietal</span><span class="d">attention</span></div>
+      </div>
+      <div class="strip reveal d4">The <b>frontal pair (AF3/AF4, F3/F4)</b> over the prefrontal cortex is the critical site — left-vs-right alpha imbalance there is what indexes whether a place pulls a person <b>toward</b> it or pushes them away.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SITE / VS -->
+<section class="slide" id="s_site">
+  <div class="eyebrow reveal">Why timing matters</div>
+  <h2 class="reveal d1">Data that cannot be<br>collected again.</h2>
+  <div class="two-col" style="grid-template-columns:1fr 1fr;">
+    <div class="reveal d2">
+      <figure style="margin:0;"><img src="photos/site_historic.jpg" alt="" style="width:100%; aspect-ratio:3/2; object-fit:cover; border-radius:4px; display:block;"><figcaption style="font-size:12px; color:var(--grey); margin-top:8px;">Wah Fu Estate, late 1960s — newly built by the sea.</figcaption></figure>
+      <figure style="margin:16px 0 0;"><img src="photos/site_old.jpg" alt="" style="width:100%; aspect-ratio:3/2; object-fit:cover; border-radius:4px; display:block;"><figcaption style="font-size:12px; color:var(--grey); margin-top:8px;">The same old estates today — lived-in, weathered, soon to be cleared.</figcaption></figure>
+    </div>
+    <div>
+      <p class="reveal d2">The 1950s–60s estates — <strong>Wah Fu</strong> and <strong>Sai Wan</strong> — are being demolished. Once gone, this visual record can never be recaptured.</p>
+      <div class="reveal d3" style="display:grid; grid-template-columns:1fr 1fr; gap:20px; margin-top:18px;">
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:0.95rem; margin-bottom:8px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--ink);"></span>Old</div>
+          <ul style="list-style:none; font-size:0.85rem; color:var(--grey);">
+            <li style="padding:3px 0;">Low-rise, open corridors</li>
+            <li style="padding:3px 0;">Inhabited facades</li>
+            <li style="padding:3px 0;">Raw concrete &amp; patina</li>
+          </ul>
+        </div>
+        <div>
+          <div style="display:flex; align-items:center; gap:8px; font-weight:600; font-size:0.95rem; margin-bottom:8px;"><span style="width:10px;height:10px;border-radius:50%;background:var(--accent);"></span>New</div>
+          <ul style="list-style:none; font-size:0.85rem; color:var(--grey);">
+            <li style="padding:3px 0;">High-rise, enclosed</li>
+            <li style="padding:3px 0;">Clean curtain-wall</li>
+            <li style="padding:3px 0;">Little weathering</li>
+          </ul>
+        </div>
+      </div>
+      <div class="strip reveal d4"><b>Time-critical:</b> Sai Wan clears in 2025–26, Wah Fu from July 2027 — the old estates must be photographed before they are gone.</div>
+    </div>
+  </div>
+</section>
+
+<!-- SURVEY PROCEDURE / METHODOLOGY -->
+<section class="slide" id="s_survey" data-screen-label="Survey procedure">
+  <div class="eyebrow reveal">How the perception survey works</div>
+  <h2 class="reveal d1">Inside the online<br>experiment.</h2>
+  <div class="survey-layout">
+    <figure class="survey-fig reveal d2">
+      <img src="photos/survey_procedure_diagram.svg" alt="Survey procedure flow diagram">
+      <figcaption>Full procedure — built in Gorilla, run on Prolific, pre-registered on OSF.</figcaption>
+    </figure>
+    <div class="reveal d3">
+      <p style="max-width:52ch;">Each participant moves through three tasks. The core is a <strong>12-trial loop</strong> of photographs, with everything counterbalanced so order and content can’t bias the result.</p>
+      <div style="margin-top:22px;">
+        <div class="survey-task"><span class="tn">1</span><div><h3>Instructions &amp; consent</h3><p>Study overview, then a counterbalance node assigns one of <strong>5 stimulus lists</strong> (cyclic Latin square).</p></div></div>
+        <div class="survey-task"><span class="tn">2</span><div><h3>Photo estates — × 12 trials</h3><p>An <strong>8-second</strong> full-screen photo (appropriation levels ivc000→ivc100), then <strong>six 1–7 ratings</strong>: pleasantness, safety, and resident-agency items. Hidden attention checks throughout.</p></div></div>
+        <div class="survey-task"><span class="tn">3</span><div><h3>Demographics</h3><p>Age, residence, housing history, and HK familiarity — then debrief.</p></div></div>
+      </div>
+      <div class="survey-meta reveal d4">
+        <div class="m"><div class="n">150</div><div class="l">participants (165 recruited)</div></div>
+        <div class="m"><div class="n">12</div><div class="l">scenes each</div></div>
+        <div class="m"><div class="n">6</div><div class="l">ratings per scene</div></div>
+        <div class="m"><div class="n">~10<span style="font-size:0.9rem;">min</span></div><div class="l">per session</div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- RESULTS -->
+<section class="slide" id="s_results">
+  <div class="eyebrow reveal">Preliminary results · pilot behavioural experiment</div>
+  <h2 class="reveal d1">First behavioural signals<br>from <em>62</em> participants.</h2>
+  <div class="res-stats reveal d2">
+    <div><div class="n">62</div><div class="l">participants completed</div></div>
+    <div><div class="n">60</div><div class="l">analysable · QC-passed</div></div>
+    <div><div class="n">720</div><div class="l">scene ratings</div></div>
+    <div><div class="n">78<span>%</span></div><div class="l">completion rate</div></div>
+    <div><div class="n">6.3<span>min</span></div><div class="l">median session</div></div>
+  </div>
+  <h3 class="reveal d3" style="margin-top:30px;">Mean pleasantness — epoch × inhabitation level <span style="color:var(--faint); font-weight:500;">(scale 1–7)</span></h3>
+  <div class="matrix2 reveal d3">
+    <div class="mh"></div>
+    <div class="mh">ivc000<span>L0</span></div><div class="mh">ivc025<span>L1</span></div><div class="mh">ivc050<span>L2</span></div><div class="mh">ivc075<span>L3</span></div><div class="mh">ivc100<span>L4</span></div>
+    <div class="rl">Old</div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 15%,var(--wash));"><div class="v">3.49</div><div class="nn">n=70</div></div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 44%,var(--wash));"><div class="v">4.03</div><div class="nn">n=72</div></div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 66%,var(--wash)); color:#fff;"><div class="v">4.43</div><div class="nn">n=70</div></div>
+    <div class="cell2 peak" style="background:color-mix(in oklab,var(--accent) 71%,var(--wash)); color:#fff;"><div class="pk">peak</div><div class="v">4.52</div><div class="nn">n=77</div></div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 54%,var(--wash));"><div class="v">4.21</div><div class="nn">n=71</div></div>
+    <div class="rl">New</div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 48%,var(--wash));"><div class="v">4.10</div><div class="nn">n=71</div></div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 62%,var(--wash));"><div class="v">4.36</div><div class="nn">n=70</div></div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 71%,var(--wash)); color:#fff;"><div class="v">4.53</div><div class="nn">n=72</div></div>
+    <div class="cell2" style="background:color-mix(in oklab,var(--accent) 68%,var(--wash)); color:#fff;"><div class="v">4.47</div><div class="nn">n=70</div></div>
+    <div class="cell2 peak" style="background:color-mix(in oklab,var(--accent) 85%,var(--wash)); color:#fff;"><div class="pk">peak</div><div class="v">4.78</div><div class="nn">n=77</div></div>
+  </div>
+  <p class="reveal d4" style="margin-top:18px; max-width:80ch; font-size:0.95rem;">Old estates peak at <strong>mid-inhabitation</strong> (ivc075 = 4.52) then fall — an inverted-U. New estates instead climb steadily toward <strong style="color:var(--accent)">full inhabitation</strong> (ivc100 = 4.78). The trace of life seems to matter differently in the two eras.</p>
+</section>
+
+<!-- RESULTS · HYPOTHESES -->
+<section class="slide" id="s_hyp_results" data-screen-label="Hypothesis check">
+  <div class="eyebrow reveal">Preliminary results · hypothesis check</div>
+  <h2 class="reveal d1">What the pilot supports —<br>and what it doesn't.</h2>
+  <div class="hyp-list reveal d2">
+    <div class="hyp-row ok">
+      <div class="hcode">H1a</div>
+      <div>
+        <div class="htitle">Inverted-U in <strong>old</strong> estates — pleasantness peaks at mid-levels</div>
+        <div class="hfind"><span class="hbars"><i style="height:10px;"></i><i style="height:22px;"></i><i style="height:32px;"></i><i class="hi" style="height:34px;"></i><i style="height:27px;"></i></span> Peak at ivc075 (4.52) · mid 4.33 &gt; extremes 3.85</div>
+      </div>
+      <div class="hpill ok">Supported</div>
+    </div>
+    <div class="hyp-row no">
+      <div class="hcode">H1b</div>
+      <div>
+        <div class="htitle">Inverted-U in <strong>new</strong> estates</div>
+        <div class="hfind"><span class="hbars"><i style="height:24px;"></i><i style="height:30px;"></i><i style="height:34px;"></i><i style="height:32px;"></i><i class="hi" style="height:40px;"></i></span> Rises to ivc100 (4.78) — no clear inverted-U</div>
+      </div>
+      <div class="hpill no">Not supported</div>
+    </div>
+    <div class="hyp-row no">
+      <div class="hcode">H2</div>
+      <div>
+        <div class="htitle">Inverted-U for perceived <strong>agency</strong> across appropriation levels</div>
+        <div class="hfind"><span class="hbars"><i style="height:15px;"></i><i style="height:21px;"></i><i style="height:25px;"></i><i style="height:30px;"></i><i class="hi" style="height:32px;"></i></span> Climbs to ivc100 (5.62) · mid 4.43 vs extremes 4.11</div>
+      </div>
+      <div class="hpill no">Not supported</div>
+    </div>
+    <div class="hyp-row ok">
+      <div class="hcode">H3</div>
+      <div>
+        <div class="htitle">Agency predicts pleasantness — mediation b-path</div>
+        <div class="hfind"><span class="hchip">r = 0.502</span> Strong positive correlation across n = 720 trials</div>
+      </div>
+      <div class="hpill ok">Supported</div>
+    </div>
+    <div class="hyp-row ok">
+      <div class="hcode">H4</div>
+      <div>
+        <div class="htitle">Old + high appropriation beats new + low appropriation</div>
+        <div class="hfind"><span class="hchip">Δ +0.14</span> Old-high (L3+L4) 4.37 &gt; New-low (L0+L1) 4.23 · agency 5.33 vs 3.14</div>
+      </div>
+      <div class="hpill ok">Supported</div>
+    </div>
+  </div>
+  <p class="reveal d3" style="font-size:11.5px; color:var(--faint); margin-top:16px; max-width:none;">Pilot sample · simplified descriptive tests; full mixed-effects models (estate as random effect) to follow with the EEG data.</p>
+</section>
+
+<!-- RESULTS · CROSS-CULTURAL -->
+<section class="slide" id="s_region_results" data-screen-label="Cross-cultural">
+  <div class="eyebrow reveal">Preliminary results · cross-cultural (H5)</div>
+  <h2 class="reveal d1">Does the pattern hold<br>across cultures?</h2>
+  <div class="region-head reveal d2">
+    <div>Region</div><div>H1a · old U</div><div>H1b · new U</div><div>H2 · agency U</div><div>H3 · mediation</div><div>H4 · old&gt;new</div>
+  </div>
+  <div class="region-grid reveal d2">
+    <div class="region-row">
+      <div class="rname"><span class="rdot" style="background:var(--ok);"></span>North America <small>27 · 324 trials</small></div>
+      <div class="rchip ok"><b>✓</b><span>peak L3</span></div><div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip ok"><b>✓</b><span>r 0.55</span></div><div class="rchip no"><b>✗</b><span>Δ −0.07</span></div>
+    </div>
+    <div class="region-row">
+      <div class="rname"><span class="rdot" style="background:var(--no);"></span>Russia <small>15 · 180 trials</small></div>
+      <div class="rchip ok"><b>✓</b><span>peak L3</span></div><div class="rchip ok"><b>✓</b><span>peak L2</span></div><div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip ok"><b>✓</b><span>r 0.42</span></div><div class="rchip ok"><b>✓</b><span>Δ +0.47</span></div>
+    </div>
+    <div class="region-row">
+      <div class="rname"><span class="rdot" style="background:#3a5bd0;"></span>Europe <small>7 · 84 trials</small></div>
+      <div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip ok"><b>✓</b><span>r 0.45</span></div><div class="rchip ok"><b>✓</b><span>Δ +1.18</span></div>
+    </div>
+    <div class="region-row">
+      <div class="rname"><span class="rdot" style="background:#e0a52b;"></span>Asia <small>6 · 72 trials</small></div>
+      <div class="rchip ok"><b>✓</b><span>peak L2</span></div><div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip no"><b>✗</b><span>peak L4</span></div><div class="rchip ok"><b>✓</b><span>r 0.55</span></div><div class="rchip no"><b>✗</b><span>Δ −0.42</span></div>
+    </div>
+    <div class="region-row">
+      <div class="rname"><span class="rdot" style="background:#d4622a;"></span>Middle East <small>2 · 24 trials</small> <span class="lown">low n</span></div>
+      <div class="rchip na"><b>·</b><span>L1</span></div><div class="rchip na"><b>·</b><span>L0</span></div><div class="rchip na"><b>·</b><span>L4</span></div><div class="rchip na"><b>·</b><span>r 0.32</span></div><div class="rchip na"><b>·</b><span>Δ +0.17</span></div>
+    </div>
+  </div>
+  <p class="reveal d3" style="font-size:11.5px; color:var(--faint); margin-top:16px; max-width:none;">The old-estate inverted-U (H1a) and the agency→pleasantness link (H3) recur across most regions; the new-estate pattern does not. Regions with &lt; 5 participants are under-powered — read as directional only.</p>
+</section>
+
+<!-- APPLICATION -->
+<section class="slide" id="s5b">
+  <div class="eyebrow reveal">Who this is for</div>
+  <h2 class="reveal d1">Evidence for a decision<br>being made right now.</h2>
+  <div class="three-col reveal d2">
+    <div class="concept">
+      <svg class="ico" width="52" height="52" viewBox="0 0 48 48"><path d="M8 40 L40 40 M12 40 L12 18 L24 10 L36 18 L36 40"/><line class="ac" x1="20" y1="40" x2="20" y2="30"/><line class="ac" x1="28" y1="40" x2="28" y2="30"/></svg>
+      <h3>Housing policy</h3>
+      <p>Evidence on whether demolition-and-rebuild truly improves how housing feels.</p>
+    </div>
+    <div class="concept">
+      <svg class="ico" width="52" height="52" viewBox="0 0 48 48"><path class="ac" d="M14 34 L24 10 L34 34"/><path d="M10 38 C16 34 32 34 38 38"/><circle cx="24" cy="22" r="2"/></svg>
+      <h3>Designers</h3>
+      <p>New housing can be designed to <em class="it">invite</em> traces of life, not erase them.</p>
+    </div>
+    <div class="concept">
+      <svg class="ico" width="52" height="52" viewBox="0 0 48 48"><rect x="10" y="10" width="28" height="28" rx="2"/><line class="ac" x1="16" y1="18" x2="32" y2="18"/><line x1="16" y1="24" x2="32" y2="24"/><line x1="16" y1="30" x2="26" y2="30"/></svg>
+      <h3>Researchers</h3>
+      <p>A reusable way to measure inhabited complexity in any city.</p>
+    </div>
+  </div>
+</section>
+
+<!-- CLOSING -->
+<section class="slide divider" id="s_end" style="justify-content:center; align-items:flex-start;">
+  <h1 class="reveal" style="color:#fff; font-size:clamp(2.8rem,7vw,5.5rem);">Before we <em>demolish,</em><br>let us look.</h1>
+  <p class="reveal d2" style="color:rgba(255,255,255,0.65); margin-top:28px; font-size:1.15rem; font-weight:300;">Alina Viven Shults · Master of Urban Design · MUDP1004 Midterm Review · HKU</p>
+  <p class="reveal d3" style="color:var(--accent); margin-top:10px; font-size:0.95rem; font-weight:500;">Questions &amp; discussion</p>
+</section>
+
+<script>
+// dot-pattern generator for IVC cells (increasing density = traces of life)
+function fillDots(id, count, color){
+  const el = document.getElementById(id); if(!el) return;
+  const svgNS = "http://www.w3.org/2000/svg";
+  const svg = document.createElementNS(svgNS,"svg");
+  svg.setAttribute("viewBox","0 0 100 100"); svg.setAttribute("width","100%"); svg.setAttribute("height","100%");
+  let seed = 7;
+  function rnd(){ seed = (seed*9301+49297)%233280; return seed/233280; }
+  for(let i=0;i<count;i++){
+    const x = 8+rnd()*84, y=8+rnd()*84, r=0.8+rnd()*1.8;
+    const c = document.createElementNS(svgNS,"circle");
+    c.setAttribute("cx",x); c.setAttribute("cy",y); c.setAttribute("r",r);
+    c.setAttribute("fill", color);
+    svg.appendChild(c);
+  }
+  el.appendChild(svg);
+}
+fillDots("iv0", 4, "#c8c8c8");
+fillDots("iv33", 22, "#dba88f");
+fillDots("iv66", 60, "#cf8a6c");
+fillDots("iv100", 130, "#c97b5e");
+
+const progress = document.getElementById('progress');
+window.addEventListener('scroll', () => { const h = document.documentElement.scrollHeight - window.innerHeight; progress.style.width = (window.scrollY/h*100)+'%'; });
+const slides = document.querySelectorAll('.slide');
+const navDots = document.getElementById('navDots');
+slides.forEach((s)=>{ const a=document.createElement('a'); a.href='#'+s.id; navDots.appendChild(a); });
+const dots = navDots.querySelectorAll('a');
+const revealObs = new IntersectionObserver((es)=>{es.forEach(e=>{ if(e.isIntersecting){ e.target.querySelectorAll('.reveal').forEach(r=>r.classList.add('in')); e.target.querySelectorAll('.bar-fill').forEach(b=>b.style.width=b.dataset.w+'%'); e.target.querySelectorAll('[data-target]').forEach(c=>{const t=+c.dataset.target;let cur=0;const st=t/40;const tick=()=>{cur+=st;if(cur<t){c.textContent=Math.round(cur);requestAnimationFrame(tick);}else c.textContent=t;};tick();}); } }); },{threshold:0.2});
+slides.forEach(s=>revealObs.observe(s));
+const activeObs = new IntersectionObserver((es)=>{es.forEach(e=>{ if(e.isIntersecting) dots.forEach(d=>d.classList.toggle('active', d.getAttribute('href')==='#'+e.target.id)); });},{threshold:0.5});
+slides.forEach(s=>activeObs.observe(s));
+let current=0; const ids=Array.from(slides).map(s=>s.id);
+function goTo(i){current=Math.max(0,Math.min(slides.length-1,i)); document.getElementById(ids[current]).scrollIntoView({behavior:'smooth'});}
+window.addEventListener('keydown',(e)=>{ if(e.key==='ArrowDown'||e.key==='ArrowRight'||e.key===' '){e.preventDefault();goTo(current+1);} if(e.key==='ArrowUp'||e.key==='ArrowLeft'){e.preventDefault();goTo(current-1);} });
+const trackObs=new IntersectionObserver((es)=>{es.forEach(e=>{if(e.isIntersecting)current=ids.indexOf(e.target.id);});},{threshold:0.5});
+slides.forEach(s=>trackObs.observe(s));
+
+// Auto-print: reveal everything, fill bars, then open the print dialog
+(function(){
+  function showAll(){
+    document.querySelectorAll('.reveal').forEach(r=>r.classList.add('in'));
+    document.querySelectorAll('.bar-fill').forEach(b=>{ if(b.dataset.w) b.style.width=b.dataset.w+'%'; });
+  }
+  showAll();
+  function go(){ showAll(); setTimeout(()=>window.print(), 500); }
+  if (document.fonts && document.fonts.ready) { document.fonts.ready.then(()=>requestAnimationFrame(go)); }
+  else { window.addEventListener('load', go); }
+})();
+</script>
+</body>
+</html>
